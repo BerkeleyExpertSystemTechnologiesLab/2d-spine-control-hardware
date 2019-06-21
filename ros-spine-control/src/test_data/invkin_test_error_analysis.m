@@ -101,7 +101,8 @@ for i=1:num_tests
     errors{i}.rot_ik_inframe = errors{i}.rot_ik * 180/pi;
     
     %% A plot of the data.
-    fontsize = 14;
+%     fontsize = 14;
+    fontsize = 15;
     errfig = figure;
     hold on;
     % Set up the window
@@ -112,7 +113,7 @@ for i=1:num_tests
     plot(errors{i}.com_cv(:,1), errors{i}.com_cv(:,2), 'b', 'LineWidth', 3);
     plot(errors{i}.com_ik_inframe(:,1), errors{i}.com_ik_inframe(:,2), 'r', 'LineWidth', 3);
     % Annotate the plot
-    title('Spine Position Inverse Kinematics Test ');
+    title('Spine Inverse Statics Control Test ');
     ylabel('Spine CoM, Y (cm)');
     xlabel('Spine CoM, X (cm)');
     legend('Test (Computer Vision)', 'Predicted State', 'Location', 'Best');
@@ -188,7 +189,7 @@ for i=1:num_tests
     ylabel('X (cm)');
     % Only create a title for the first plot, that will serve for all the others too.
     %title('Tracking Errors in X Y Z  \theta \gamma \psi');
-    title('   State Errors, Inverse Kinematics Test');
+    title('   State Errors, Inverse Statics Control Test');
     set(gca,'FontSize',fontsize);
     % Scale the plot. A good scale here is...
     ylim([-0.6 0.6]);
