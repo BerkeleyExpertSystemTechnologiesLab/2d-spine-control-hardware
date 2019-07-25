@@ -8,7 +8,6 @@
  *
  * ========================================
 */
-
 // Adapted from Cypress' example CE95277 ADC and UART,
 // and from Andrew Sabelhaus' example code for ME235 S'18 at UC Berkeley.
 
