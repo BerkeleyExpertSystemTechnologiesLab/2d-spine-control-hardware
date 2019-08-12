@@ -40,9 +40,12 @@ char receive_buffer[RECEIVE_LENGTH];
 float degrees;
 // ticks_per_rev for 30 Watt motors
 float ticks_per_rev = 435356.467;
+
+// ticks_per_rev for 60 watt motors
 // 512 counts per turn. Abs. Gear reduction of 367.724
 // This is more or less correct. It seems to be slightly under but negligible.
 float ticks_per_rev_big = 189298.887;
+
 int leg;
 #define MAX_LEG_ANGLE 45
 #define DEF_LEG_ANGLE 0
@@ -156,14 +159,25 @@ void UART_Command_Parser() {
 
                     // TO-DO: replace with the #define'd constants. More efficient.
                     
+                    // Length of string (in cm):
                     // current_control[0] = (-1*control_in_cm[0]*ticks_per_rev)/(2*PI*RADIUS);
+                    // Angle rotation (degrees):
                     current_control[0] = control_in_cm[0]*ticks_per_rev/360;
-                    // Control input now in degrees for 60 watt motor
+                    
+                    // Length of string (in cm):
+                    // current_control[1] = (control_in_cm[1]*ticks_per_rev_big)/(2*PI*RADIUS);
+                    // Angle rotation (degrees):
                     current_control[1] = control_in_cm[1]*ticks_per_rev_big/360;
-                    // current_control[1] = (control_in_cm[1]*ticks_per_rev)/(2*PI*RADIUS);
+                    
+                    // Length of string (in cm):
                     current_control[2] = (control_in_cm[2]*ticks_per_rev)/(2*PI*RADIUS);
+                    // Angle rotation (degrees):
+                    current_control[2] = control_in_cm[2]*ticks_per_rev/360;
+                    
+                    // Length of string (in cm):
+                    // current_control[3] = (control_in_cm[3]*ticks_per_rev_big)/(2*PI*RADIUS);
+                    // Angle rotation (degrees):
                     current_control[3] = control_in_cm[3]*ticks_per_rev_big/360;
-                    // current_control[3] = (control_in_cm[3]*ticks_per_rev)/(2*PI*RADIUS);
                     
                     sprintf(transmit_buffer, "Stored an input, converted to encoder ticks, of %li, %li, %li, %li\r\n", current_control[0],
                         current_control[1], current_control[2], current_control[3]);

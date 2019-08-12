@@ -22,7 +22,10 @@
     
 // some dimensional parameters for use in various places
 // the radius of the spool in cm, and pi as a constant.
-#define RADIUS 1.016
+// #define RADIUS 1.016
+    
+// Smallest diameter of spool is 1 cm
+#define RADIUS 0.500
 #define PI 3.1415
 
 // For the small-amount-change tensioning commant 't',

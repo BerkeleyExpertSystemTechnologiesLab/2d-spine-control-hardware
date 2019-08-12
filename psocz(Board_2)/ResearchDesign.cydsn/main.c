@@ -49,12 +49,14 @@ char transmit_buffer[TRANSMIT_LENGTH];
 // float Kp_qd = 0.00005;
 
 // Tuned for larger movements (> 1cm) GOOD ENOUGH FOR NOW
-float Kp_qd = 0.0001;
-float Ki_qd = 0.0000005;
-float Kd_qd = 0.000001;
+// float Kp_qd = 0.0001;
+// float Ki_qd = 0.0000005;
+// float Kd_qd = 0.000001;
 
 // Tuned for smaller movments (<= 1 cm)
 // float Kp_qds = 0.001;
+
+// Gains we are currently using:
 float Kp_qds = 0.0009;
 float Ki_qds = 0.0000001;
 float Kd_qds = 0.001;
@@ -74,14 +76,15 @@ float Kd_qds = 0.001;
 
 // Tuned for larger movments (> 1 cm) GOOD ENOUGH FOR NOW
 // float Kp = 0.000005;
-float Kp = 0.000001;
-float Ki = 0.0000001;
-float Kd = 0.001;
+// float Kp = 0.000001;
+// float Ki = 0.0000001;
+// float Kd = 0.001;
 // float Kd = 0.01;
 
 // float Kd = 0.00007;
 
 // Tuned for smaller movments (<= 1 cm)
+// Gains we are currently using:
 float Kps = 0.0005;
 float Kis = 0.000001;
 float Kds = 0.001;
