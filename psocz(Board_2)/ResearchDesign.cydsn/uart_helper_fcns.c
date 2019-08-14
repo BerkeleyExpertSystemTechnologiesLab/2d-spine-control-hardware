@@ -172,7 +172,7 @@ void UART_Command_Parser() {
                     // Length of string (in cm):
                     current_control[2] = (control_in_cm[2]*ticks_per_rev)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    current_control[2] = control_in_cm[2]*ticks_per_rev/360;
+                    // current_control[2] = control_in_cm[2]*ticks_per_rev/360;
                     
                     // Length of string (in cm):
                     // current_control[3] = (control_in_cm[3]*ticks_per_rev_big)/(2*PI*RADIUS);
