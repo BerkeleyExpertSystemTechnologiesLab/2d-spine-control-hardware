@@ -23,6 +23,13 @@
 // (note: re-using variable names since out-of-scope of uart_helper_fcns.)
 #define TRANSMIT_LENGTH 128
 
+// Example, if we wanted to do two boards with the same code,
+// #define IS_BOARD_ONE 1
+// 
+// in the code,
+// if(IS_BOARD_ONE){ do board one stuff}
+// else{ do board 2 stuff}.
+
 // Include both the UART helper functions and the header
 // that has the global variables we need.
 // note that both of these should have include guards in them already
@@ -267,6 +274,7 @@ void move_motor_2() {
     prev_error[1] = error[1];
 }
 
+// 30W
 void move_motor_3() {
     // Proportional term
     error[2] = current_control[2] - QuadDec_Motor3_GetCounter();
@@ -334,6 +342,7 @@ void move_motor_3() {
     prev_error[2] = error[2];
 }
 
+// 60W
 void move_motor_4() {
     // Proportional term
     error[3] = current_control[3] - QuadDec_Motor4_GetCounter();

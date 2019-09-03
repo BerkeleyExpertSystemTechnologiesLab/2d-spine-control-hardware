@@ -36,7 +36,9 @@
 char transmit_buffer[TRANSMIT_LENGTH];
 char receive_buffer[RECEIVE_LENGTH];
 
-// Zach's code/modifications
+// START BELKA LEG/SPINE MOTOR MODIFICATIONS
+
+// We now use the degrees variable for tracking leg motor positions (not cm)
 float degrees;
 // ticks_per_rev for 30 Watt motors
 float ticks_per_rev = 435356.467;
@@ -56,6 +58,8 @@ int leg;
 #define MIN_SPINE_LENGTH -3
 #define MAX_SPINE_ROT_LENGTH 4
 #define MIN_SPINE_ROT_LENGTH -4
+
+// END BELKA LEG/SPINE MOTOR MODIFICATIONS
 
 // char cmd_str[2] = "00";
 
@@ -342,6 +346,7 @@ void UART_Command_Parser() {
             
         }
     }else{
+            // More than one character in a command, check for the leg/spine for Belka.
             // LEGS:
             // left front leg max angle
             if(strcmp(&cmd,"lff")==0) {
@@ -427,6 +432,12 @@ void UART_Command_Parser() {
                 sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
                 current_control[1], current_control[2], current_control[3]);
             }
+            
+            // add something to catch a "not matched, more than one character command"
+            // else{ 
+            //      sprintf(transmit_buffer, "Error! Multi-character command not recognized!\r\n");
+            // }
+            
             tensioning = 0;
             controller_status = 1;
             motor_1 = 1;
@@ -449,8 +460,8 @@ void UART_Command_Parser() {
 // UPDATE THIS when new functionality is added.
 void UART_Welcome_Message(){
     
-    UART_PutString("\r\n2D Spine Controller Test.\r\n");
-    UART_PutString("Copyright 2018 Berkeley Emergent Space Tensegrities Lab.\r\n");
+    UART_PutString("\r\nBelka Walking Controller.\r\n");
+    UART_PutString("Copyright 2019 Berkeley Emergent Space Tensegrities Lab.\r\n");
     UART_PutString("Usage: send strings of the form (char) (optional_args). Currently supported:\r\n");
     UART_PutString("(NOTE: THESE MUST BE FOLLOWED EXACTLY, with exact spacing.)\r\n\n");
     UART_PutString("q = Query currently-stored control input\r\n");
@@ -462,9 +473,10 @@ void UART_Welcome_Message(){
     UART_PutString("              E.g. t-4 = motor 4, loosen.\r\n");
     UART_PutString("n = eNable all the PWMs for the motors (useful after d.)\r\n");
     UART_PutString("e = query Encoder ticks (current motor positions.)\r\n");
-    UART_PutString("o = query eRror signal, control - encoder ticks.\r\n\n");
+    UART_PutString("o = query eRror signal, control - encoder ticks.\r\n");
+    UART_PutString("*ALSO, spine/leg commands, see google doc.\r\n\n");
     UART_PutString("Recommended use pattern:\r\n");
-    UART_PutString("c to reset buffer, u 0 0 0 0 to loosen the cables, then pin the vertebra in place,\r\n");
+    UART_PutString("c to reset buffer, CHANGE THIS u 0 0 0 0 to loosen the cables, then ,\r\n");
     UART_PutString("t to tension appropriately, d to set the zero point, then finally send u commands.\r\n\n");
     //UART_PutString("Remember to set your terminal's newline to LF or automatic detection. (TeraTerm: Setup -> Terminal -> New-line).\n\n");
 }
