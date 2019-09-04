@@ -351,86 +351,107 @@ void UART_Command_Parser() {
             // left front leg max angle
             if(strcmp(&cmd,"lff")==0) {
                 current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
-                        current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Front left leg moved to max angle\r\n");
             }
             // left front leg min angle
             else if(strcmp(&cmd,"lfb")==0) {
                 current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Front left leg moved to min angle\r\n");
             }
             // left front leg zero angle
             else if(strcmp(&cmd,"lf")==0) {
                 current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Front left leg moved to mid angle\r\n");
             }
             
             // left back leg max angle
             else if(strcmp(&cmd,"lbf")==0) {
                 current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Back left leg moved to max angle\r\n");
             }
             // left back leg min angle
             else if(strcmp(&cmd,"lbb")==0) {
                 current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Back left leg moved to min angle\r\n");
             }
             // left front leg zero angle
             else if(strcmp(&cmd,"lb")==0) {
                 current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Back left leg moved to mid angle\r\n");
             }
             
             // Right front leg max angle
             else if(strcmp(&cmd,"rff")==0) {
             current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
+            sprintf(transmit_buffer, "Front right leg moved to max angle\r\n");
             }
             // Right front leg min angle
             else if(strcmp(&cmd,"rfb")==0) {
             current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
+            sprintf(transmit_buffer, "Front right leg moved to min angle\r\n");
             }
             // Right front leg zero angle
             else if(strcmp(&cmd,"rf")==0) {
             current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
+            sprintf(transmit_buffer, "Front right leg moved to mid angle\r\n");
             }
             
             // Right back leg max angle
             else if(strcmp(&cmd,"rbf")==0) {
                 current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Back right leg moved to max angle\r\n");
             }
-            // Right front leg min angle
+            // Right back leg min angle
             else if(strcmp(&cmd,"rbb")==0) {
                 current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Back right leg moved to min angle\r\n");
             }
-            // Right front leg zero angle
+            // Right back leg zero angle
             else if(strcmp(&cmd,"rb")==0) {
                 current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Back right leg moved to mid angle\r\n");
             }
 
             // Need a left/right command and CW/CCW command
             // SPINE:
-            if(strcmp(&cmd,"scw")==0) {
+            
+            // Spine rotate clockwise
+            else if(strcmp(&cmd,"scw")==0) {
                 current_control[1] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[3] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
-                current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Spine moved clockwise\r\n");
             }
+            
+            // Spine rotated counter-clockwise
             else if(strcmp(&cmd,"sccw")==0) {
                 current_control[3] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[1] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                sprintf(transmit_buffer, "Spine moved counter-clockwise\r\n");
             }
             
-            if(strcmp(&cmd,"sl")==0) {
+            // Spine moved left
+            else if(strcmp(&cmd,"sl")==0) {
                 current_control[1] = MIN_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[3] = MAX_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
-                current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Spine moved left\r\n");
             }
+            
+            // Spine moved right
             else if(strcmp(&cmd,"sr")==0) {
                 current_control[3] = MIN_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[1] = MAX_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                sprintf(transmit_buffer, "Spine moved right\r\n");
             }
             
-            if(strcmp(&cmd,"sd")==0) {
+            // Spine midpoint
+            else if(strcmp(&cmd,"sd")==0) {
                 current_control[1] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[3] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
-                current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Spine moved to midpoint\r\n");
+            }
+           // Error message
+            else {
+                sprintf(transmit_buffer, "Error! Command not recognized!\r\n");
             }
             
             // add something to catch a "not matched, more than one character command"
