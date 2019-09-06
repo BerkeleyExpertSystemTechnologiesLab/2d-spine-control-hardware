@@ -36,7 +36,9 @@
 char transmit_buffer[TRANSMIT_LENGTH];
 char receive_buffer[RECEIVE_LENGTH];
 
-// Zach's code/modifications
+// START BELKA LEG/SPINE MOTOR MODIFICATIONS
+
+// We now use the degrees variable for tracking leg motor positions (not cm)
 float degrees;
 // ticks_per_rev for 30 Watt motors
 float ticks_per_rev = 435356.467;
@@ -47,15 +49,17 @@ float ticks_per_rev = 435356.467;
 float ticks_per_rev_big = 189298.887;
 
 int leg;
-#define MAX_LEG_ANGLE 45
+#define MAX_LEG_ANGLE 10
 #define DEF_LEG_ANGLE 0
-#define MIN_LEG_ANGLE -45
+#define MIN_LEG_ANGLE -10
 
-#define MAX_SPINE_LENGTH 3
+#define MAX_SPINE_LENGTH 0.3
 #define DEF_SPINE_LENGTH 0
-#define MIN_SPINE_LENGTH -3
-#define MAX_SPINE_ROT_LENGTH 4
-#define MIN_SPINE_ROT_LENGTH -4
+#define MIN_SPINE_LENGTH -0.3
+#define MAX_SPINE_ROT_LENGTH 0.3
+#define MIN_SPINE_ROT_LENGTH -0.3
+
+// END BELKA LEG/SPINE MOTOR MODIFICATIONS
 
 // char cmd_str[2] = "00";
 
@@ -165,19 +169,19 @@ void UART_Command_Parser() {
                     current_control[0] = control_in_cm[0]*ticks_per_rev/360;
                     
                     // Length of string (in cm):
-                    // current_control[1] = (control_in_cm[1]*ticks_per_rev_big)/(2*PI*RADIUS);
+                    current_control[1] = (control_in_cm[1]*ticks_per_rev_big)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    current_control[1] = control_in_cm[1]*ticks_per_rev_big/360;
+                    // current_control[1] = control_in_cm[1]*ticks_per_rev_big/360;
                     
                     // Length of string (in cm):
-                    current_control[2] = (control_in_cm[2]*ticks_per_rev)/(2*PI*RADIUS);
+                    // current_control[2] = (control_in_cm[2]*ticks_per_rev)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    // current_control[2] = control_in_cm[2]*ticks_per_rev/360;
+                    current_control[2] = control_in_cm[2]*ticks_per_rev/360;
                     
                     // Length of string (in cm):
-                    // current_control[3] = (control_in_cm[3]*ticks_per_rev_big)/(2*PI*RADIUS);
+                    current_control[3] = (control_in_cm[3]*ticks_per_rev_big)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    current_control[3] = control_in_cm[3]*ticks_per_rev_big/360;
+                    // current_control[3] = control_in_cm[3]*ticks_per_rev_big/360;
                     
                     sprintf(transmit_buffer, "Stored an input, converted to encoder ticks, of %li, %li, %li, %li\r\n", current_control[0],
                         current_control[1], current_control[2], current_control[3]);
@@ -212,7 +216,7 @@ void UART_Command_Parser() {
                 
             case 'p':
                 // current PWM value
-                sprintf(transmit_buffer, "Current control: %hu\r\n",PWM_1_ReadCompare());
+                sprintf(transmit_buffer, "Current control (PWM): %hu, %hu, %hu, %hu\r\n", PWM_1_ReadCompare(), PWM_2_ReadCompare(), PWM_3_ReadCompare(), PWM_4_ReadCompare());
 
                 break;
                 
@@ -301,7 +305,7 @@ void UART_Command_Parser() {
                 integral_error[2] = 0;
                 integral_error[3] = 0;
                 
-                sprintf(transmit_buffer, "Controls and encoder counts reset, PWM now of.\r\n");
+                sprintf(transmit_buffer, "Controls and encoder counts reset, PWM now off.\r\n");
                 break;
                 
             case 'q':
@@ -342,118 +346,106 @@ void UART_Command_Parser() {
             
         }
     }else{
-           // More than one character in a command, check for the leg/spine for Belka.
+            // More than one character in a command, check for the leg/spine for Belka.
+			// BOARD_2 supports front legs and spine left/right.
             // LEGS:
             // left front leg max angle
             if(strcmp(&cmd,"lff")==0) {
-                current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Front left leg moved to max angle\r\n");
+                current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                //sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
+                //        current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Left Front Leg MAX angle.\r\n");
             }
             // left front leg min angle
             else if(strcmp(&cmd,"lfb")==0) {
-                current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Front left leg moved to min angle\r\n");
+                current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Left Front Leg MIN angle.\r\n");
             }
             // left front leg zero angle
             else if(strcmp(&cmd,"lf")==0) {
-                current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Front left leg moved to mid angle\r\n");
+                current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Left Front Leg ZERO angle.\r\n");
             }
-            
             // left back leg max angle
             else if(strcmp(&cmd,"lbf")==0) {
-                current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Back left leg moved to max angle\r\n");
+                // current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Error! Shoulders do not support left back leg.\r\n");
             }
             // left back leg min angle
             else if(strcmp(&cmd,"lbb")==0) {
-                current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Back left leg moved to min angle\r\n");
+                // current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Error! Shoulders do not support left back leg.\r\n");
             }
-            // left front leg zero angle
+            // left back leg zero angle
             else if(strcmp(&cmd,"lb")==0) {
-                current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Back left leg moved to mid angle\r\n");
+                // current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Error! Shoulders do not support left back leg.\r\n");
             }
-            
             // Right front leg max angle
             else if(strcmp(&cmd,"rff")==0) {
-            current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
-            sprintf(transmit_buffer, "Front right leg moved to max angle\r\n");
+                current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Right Front Leg MAX angle.\r\n");
             }
             // Right front leg min angle
             else if(strcmp(&cmd,"rfb")==0) {
-            current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
-            sprintf(transmit_buffer, "Front right leg moved to min angle\r\n");
+                current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Right Front Leg MIN angle.\r\n");
             }
             // Right front leg zero angle
             else if(strcmp(&cmd,"rf")==0) {
-            current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
-            sprintf(transmit_buffer, "Front right leg moved to mid angle\r\n");
+                current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                sprintf(transmit_buffer, "Right Front Leg ZERO angle.\r\n");
             }
-            
             // Right back leg max angle
             else if(strcmp(&cmd,"rbf")==0) {
-                current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Back right leg moved to max angle\r\n");
+                // current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
+				sprintf(transmit_buffer, "Error! Shoulders do not support right back leg.\r\n");
             }
             // Right back leg min angle
             else if(strcmp(&cmd,"rbb")==0) {
-                current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Back right leg moved to min angle\r\n");
+                // current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
+				sprintf(transmit_buffer, "Error! Shoulders do not support right back leg.\r\n");
             }
             // Right back leg zero angle
             else if(strcmp(&cmd,"rb")==0) {
-                current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
-                sprintf(transmit_buffer, "Back right leg moved to mid angle\r\n");
+                // current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
+				sprintf(transmit_buffer, "Error! Shoulders do not support right back leg.\r\n");
             }
-
             // Need a left/right command and CW/CCW command
             // SPINE:
-            
-            // Spine rotate clockwise
             else if(strcmp(&cmd,"scw")==0) {
-                current_control[1] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                current_control[3] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Spine moved clockwise\r\n");
+                // current_control[1] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                // current_control[3] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                // sprintf(transmit_buffer, "Spine Clockwise (CW).\r\n");
+				sprintf(transmit_buffer, "Error! Shoulders do not spine clockwise.\r\n");
             }
-            
-            // Spine rotated counter-clockwise
             else if(strcmp(&cmd,"sccw")==0) {
-                current_control[3] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                current_control[1] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Spine moved counter-clockwise\r\n");
+                // current_control[3] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                // current_control[1] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                // sprintf(transmit_buffer, "Spine CounterClockwise (CCW).\r\n");
+				sprintf(transmit_buffer, "Error! Shoulders do not support spine counterclockwise.\r\n");
             }
-            
-            // Spine moved left
             else if(strcmp(&cmd,"sl")==0) {
                 current_control[1] = MIN_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[3] = MAX_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Spine moved left\r\n");
+                //sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
+                //current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Spine Left Bending.\r\n");
             }
-            
-            // Spine moved right
             else if(strcmp(&cmd,"sr")==0) {
                 current_control[3] = MIN_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[1] = MAX_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Spine moved right\r\n");
+                sprintf(transmit_buffer, "Spine Right Bending.\r\n");
             }
-            
-            // Spine midpoint
             else if(strcmp(&cmd,"sd")==0) {
                 current_control[1] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 current_control[3] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                sprintf(transmit_buffer, "Spine moved to midpoint\r\n");
+                sprintf(transmit_buffer, "Spine Bending ZERO.\r\n");
             }
-           // Error message
-            else {
-                sprintf(transmit_buffer, "Error! Command not recognized!\r\n");
-            }
-            
             // add something to catch a "not matched, more than one character command"
-            // else{ 
-            //      sprintf(transmit_buffer, "Error! Multi-character command not recognized!\r\n");
-            // }
+            else{ 
+                  sprintf(transmit_buffer, "Error! Multi-character command not recognized!\r\n");
+            }
             
             tensioning = 0;
             controller_status = 1;
@@ -477,8 +469,10 @@ void UART_Command_Parser() {
 // UPDATE THIS when new functionality is added.
 void UART_Welcome_Message(){
     
-    UART_PutString("\r\n2D Spine Controller Test.\r\n");
-    UART_PutString("Copyright 2018 Berkeley Emergent Space Tensegrities Lab.\r\n");
+    UART_PutString("\r\nBelka Walking Controller.\r\n");
+    UART_PutString("Copyright 2019 Berkeley Emergent Space Tensegrities Lab.\r\n");
+    UART_PutString("\r\n*** BOARD_2 / SHOULDERS ***\r\n\r\n");
+    UART_PutString("Motors and units:\r\n(1) RightFrontLeg, DEG\r\n(2) SpineRight, CENTIMETERS\r\n(3) LeftFrontLeg, DEG\r\n(4) SpineLeft, CENTIMETERS\r\n\r\n");
     UART_PutString("Usage: send strings of the form (char) (optional_args). Currently supported:\r\n");
     UART_PutString("(NOTE: THESE MUST BE FOLLOWED EXACTLY, with exact spacing.)\r\n\n");
     UART_PutString("q = Query currently-stored control input\r\n");
@@ -490,10 +484,11 @@ void UART_Welcome_Message(){
     UART_PutString("              E.g. t-4 = motor 4, loosen.\r\n");
     UART_PutString("n = eNable all the PWMs for the motors (useful after d.)\r\n");
     UART_PutString("e = query Encoder ticks (current motor positions.)\r\n");
-    UART_PutString("o = query eRror signal, control - encoder ticks.\r\n\n");
+    UART_PutString("o = query eRror signal, control - encoder ticks.\r\n");
+    UART_PutString("*ALSO, spine/leg commands, see google doc.\r\n\n");
     UART_PutString("Recommended use pattern:\r\n");
-    UART_PutString("c to reset buffer, u 0 0 0 0 to loosen the cables, then pin the vertebra in place,\r\n");
-    UART_PutString("t to tension appropriately, d to set the zero point, then finally send u commands.\r\n\n");
+    UART_PutString("c to reset buffer, u [~] [~] [~] [~] as appropriate to loosen the cables and legs,\r\n");
+    UART_PutString("t to tension/adjust legs, d to set the zero points, then send u commands or use spine/leg command library.\r\n\n");
     //UART_PutString("Remember to set your terminal's newline to LF or automatic detection. (TeraTerm: Setup -> Terminal -> New-line).\n\n");
 }
 

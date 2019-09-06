@@ -49,15 +49,15 @@ float ticks_per_rev = 435356.467;
 float ticks_per_rev_big = 189298.887;
 
 int leg;
-#define MAX_LEG_ANGLE 45
+#define MAX_LEG_ANGLE 10
 #define DEF_LEG_ANGLE 0
-#define MIN_LEG_ANGLE -45
+#define MIN_LEG_ANGLE -10
 
-#define MAX_SPINE_LENGTH 3
+#define MAX_SPINE_LENGTH 0.3
 #define DEF_SPINE_LENGTH 0
-#define MIN_SPINE_LENGTH -3
-#define MAX_SPINE_ROT_LENGTH 4
-#define MIN_SPINE_ROT_LENGTH -4
+#define MIN_SPINE_LENGTH -0.3
+#define MAX_SPINE_ROT_LENGTH 0.3
+#define MIN_SPINE_ROT_LENGTH -0.3
 
 // END BELKA LEG/SPINE MOTOR MODIFICATIONS
 
@@ -376,7 +376,7 @@ void UART_Command_Parser() {
                 current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
                 sprintf(transmit_buffer, "Left back leg MIN angle.\r\n");
             }
-            // left front leg zero angle
+            // left back leg zero angle
             else if(strcmp(&cmd,"lb")==0) {
                 current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
                 sprintf(transmit_buffer, "Left back leg ZERO angle.\r\n");
@@ -401,12 +401,12 @@ void UART_Command_Parser() {
                 current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
                 sprintf(transmit_buffer, "Right back leg MAX angle.\r\n");
             }
-            // Right front leg min angle
+            // Right back leg min angle
             else if(strcmp(&cmd,"rbb")==0) {
                 current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
                 sprintf(transmit_buffer, "Right back leg MIN angle.\r\n");
             }
-            // Right front leg zero angle
+            // Right back leg zero angle
             else if(strcmp(&cmd,"rb")==0) {
                 current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
                 sprintf(transmit_buffer, "Right back leg ZERO angle.\r\n");
