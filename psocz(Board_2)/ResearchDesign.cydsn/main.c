@@ -459,6 +459,9 @@ int main(void) {
     Timer_Start();
     UART_Start();
     
+    // For the LED to blink
+    LED_PWM_Start();
+    
     // Print a welcome message. Comes from uart_helper_fcns.
     UART_Welcome_Message();
     

@@ -3417,7 +3417,7 @@
   <Group key="Pin2">
     <Group key="1fbf8f84-860f-4901-a332-796149c7f640">
       <Group key="0">
-        <Data key="Port Format" value="2,1" />
+        <Data key="Port Format" value="2,3" />
       </Group>
     </Group>
     <Group key="3cbe0ed1-7ede-4a34-a13a-416ab3a4ef2a">
