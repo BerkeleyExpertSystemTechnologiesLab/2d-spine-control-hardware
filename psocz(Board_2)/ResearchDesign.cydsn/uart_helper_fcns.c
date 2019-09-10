@@ -314,8 +314,9 @@ void UART_Command_Parser() {
                 
             case 'q':
                 // query the state of the store control commands.
-                sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\n", current_control[0],
-                        current_control[1], current_control[2], current_control[3]);
+                sprintf(transmit_buffer, "Current control inputs are (in encoder ticks): %li, %li, %li, %li\r\nCurrent PWM signals are (compare vals): %u, %u, %u, %u\r\n", 
+                    current_control[0], current_control[1], current_control[2], current_control[3],
+                    PWM_1_ReadCompare(), PWM_2_ReadCompare(), PWM_3_ReadCompare(), PWM_4_ReadCompare());
                 break;
                 
             case 'w':

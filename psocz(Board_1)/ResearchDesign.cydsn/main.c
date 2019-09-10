@@ -2,6 +2,8 @@
  *
  * 2D Spine Controller Test Embedded Software
  *
+ * BOARD_1 / HIPS
+ *
  * Copyright Berkeley Emergent Space Tensegrities Lab, 2018
  * (insert license later.)
  *
@@ -25,9 +27,9 @@
  * Changing the bounds for setting to "zero" for less oscillations.
  ***************************/
 #define PWM_CW_MIN 300
-#define PWM_CW_MAX 450
+#define PWM_CW_MAX 400
 
-#define PWM_CCW_MIN 150
+#define PWM_CCW_MIN 200
 #define PWM_CCW_MAX 300
 
 // Tolerance to stop moving motor 
@@ -131,8 +133,10 @@ static int32 pwm_controls[NUM_MOTORS] = {0, 0, 0, 0};
 
 // move_motor_1() being used to test 30 watt motor
 void move_motor_1() {
+    
     // Proportional term
     error[0] = current_control[0] - (QuadDec_Motor1_GetCounter());
+    
     
     // Integral term: discretized integration = addition (scaled.)
     // Note that we have to prevent integer overflow here.
@@ -297,6 +301,10 @@ void move_motor_2() {
 
 // 30W
 void move_motor_3() {
+    // Checking on quadrature encoders - are they overflowing?
+    //sprintf(transmit_buffer, "QuadDec3 Counter: %li\r\n", QuadDec_Motor1_GetCounter());
+    //UART_PutString(transmit_buffer);
+    
     // Proportional term
     error[2] = current_control[2] - QuadDec_Motor3_GetCounter();
     

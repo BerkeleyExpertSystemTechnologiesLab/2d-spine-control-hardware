@@ -2,6 +2,8 @@
  *
  * Belka Walking Embedded Software
  *
+ * BOARD 2 / SHOULDERS
+ *
  * Copyright Berkeley Emergent Space Tensegrities Lab, 2018
  * (insert license later.)
  *
@@ -25,9 +27,9 @@
  * Changing the bounds for setting to "zero" for less oscillations.
  ***************************/
 #define PWM_CW_MIN 300
-#define PWM_CW_MAX 450
+#define PWM_CW_MAX 400
 
-#define PWM_CCW_MIN 150
+#define PWM_CCW_MIN 200
 #define PWM_CCW_MAX 300
 
 // Tolerance to stop moving motor 
