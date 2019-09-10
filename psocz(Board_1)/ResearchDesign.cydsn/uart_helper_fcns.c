@@ -304,6 +304,10 @@ void UART_Command_Parser() {
                 integral_error[1] = 0;
                 integral_error[2] = 0;
                 integral_error[3] = 0;
+                deriv_error[0] = 0;
+                deriv_error[1] = 0;
+                deriv_error[2] = 0;
+                deriv_error[3] = 0;
                 
                 sprintf(transmit_buffer, "Controls and encoder counts reset, PWM now off.\r\n");
                 break;

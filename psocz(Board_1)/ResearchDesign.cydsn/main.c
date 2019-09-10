@@ -8,27 +8,36 @@
  * ========================================
 */
 
-#define PWM_CW_MAX 400
-#define PWM_CW_MIN 315
+/***************************
+ * NO LOAD PWM SETTINGS
+ ***************************/
+
+//#define PWM_CW_MAX 400
+//#define PWM_CW_MIN 315
 
 #define PWM_STOP 300
 
-#define PWM_CCW_MAX 285
-#define PWM_CCW_MIN 200
+//#define PWM_CCW_MAX 285
+//#define PWM_CCW_MIN 200
+
+/***************************
+ * MOVING / LOADED PWM SETTINGS
+ * Changing the bounds for setting to "zero" for less oscillations.
+ ***************************/
+#define PWM_CW_MIN 300
+#define PWM_CW_MAX 450
+
+#define PWM_CCW_MIN 150
+#define PWM_CCW_MAX 300
 
 // Tolerance to stop moving motor 
-#define TICKS_STOP_QD 1600 //500
+// No load, was 1600. With load... less chatter, larger deadband? Or just set to zero so that 
+// there's always a PWM = 0 at offset?
+#define TICKS_STOP_QD 1000
 
 // For transmitting strings with other variables substituted in,
 // (note: re-using variable names since out-of-scope of uart_helper_fcns.)
 #define TRANSMIT_LENGTH 128
-
-// Example, if we wanted to do two boards with the same code,
-// #define IS_BOARD_ONE 1
-// 
-// in the code,
-// if(IS_BOARD_ONE){ do board one stuff}
-// else{ do board 2 stuff}.
 
 // Include both the UART helper functions and the header
 // that has the global variables we need.
@@ -40,6 +49,7 @@
 #include "stdio.h"
 #include "uart_helper_fcns.h"
 #include "data_storage.h"
+#include "led_helper_fcns.h"
 
 // for send some debugging messages
 char transmit_buffer[TRANSMIT_LENGTH];
@@ -63,10 +73,21 @@ char transmit_buffer[TRANSMIT_LENGTH];
 // Tuned for smaller movments (<= 1 cm)
 // float Kp_qds = 0.001;
 
-// Gains we are currently using:
-float Kp_qds = 0.0009;
-float Ki_qds = 0.0000001;
-float Kd_qds = 0.001;
+/******************************
+ * BEST NO-LOAD GAINS FOR 30W MOTOR
+ ******************************/
+//float Kp_qds = 0.0009;
+//float Ki_qds = 0.0000001;
+//float Kd_qds = 0.001;
+/*******************************/
+
+/******************************
+ * BEST MOVING-LEG GAINS FOR 30W MOTOR
+ ******************************/
+float Kp_qds = 0.002;
+float Ki_qds = 0.00002;
+float Kd_qds = 0.0001;
+/*******************************/
 
 //float Ki_qd = 1;
 //float Ki_qd = 0.00001;
@@ -467,8 +488,18 @@ int main(void) {
     Timer_Start();
     UART_Start();
     
+    // For the LED to blink
+    LED_PWM_Start();
+    
     // Print a welcome message. Comes from uart_helper_fcns.
     UART_Welcome_Message();
+    
+    // set up the LED. First, a short slow blink
+    set_led_blinkslow();
+    // ...for about a half second
+    CyDelay(1000);
+    // then go to dim
+    set_led_dim();
     
     for(;;)
     {
