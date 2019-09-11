@@ -26,6 +26,17 @@ from belka_gait_commander.msg import ShouldersGaitCommand
 # we'll need to parse the string itself too?
 from std_msgs.msg import String
 
+# this helper function is a terrible solution to a problem that should be easier.
+# start_time = float, the time at the start of sending commands.
+# wait_until_since_start = float, the time at which to unblock and continue, referenced to the start time
+# dt = float, interval to sleep between checking if we're done yet
+def sleepUntil(start_time, wait_until_since_start, dt):
+    # the wall time when this function should complete:
+    final_time = start_time + wait_until_since_start
+    # then loop until we've waited long enough
+    while rospy.get_time() < final_time:
+        rospy.sleep(dt)
+
 # The primary helper function here opens the csv file, creates a big list of all the times
 # that commands should be published as well as when, and iteratively sleeps until each of those
 # times have been met.
@@ -37,32 +48,12 @@ def tx_to_topic(file_name):
     # print(sys.version)
     # First, start up the ros node.
     rospy.init_node('gait_commander', anonymous=False)
-    # We need a publisher. Note we're using the numpy message type, wrapping
-    # around the standard message type
-    #pub = rospy.Publisher('invkin_tx_commands', numpy_msg(Float32MultiArray), queue_size=10)
     # We'll need two publishers, one for the hips and one for the shoulders.
     pub_hips = rospy.Publisher('gait_commands_hips', HipsGaitCommand, queue_size=10)
     pub_shoulders = rospy.Publisher('gait_commands_shoulders', ShouldersGaitCommand, queue_size=10)
 
-    # Then, read in the csv file.
-    # The 3rd row (counting from 0) contains the parameters for this run, and is
-    # of mixed type: int, string, int, int, int, string
-    # let's try with autodetection of type. Only want 1 row.
-    # invkin_header = np.genfromtxt(file_name, dtype=None, delimiter=",",
-    #                               skip_header=3, max_rows=1)
-    # print("Using an inverse kinematics file with the parameters:")
-    # print(invkin_header)
-    # We need to now pick out the number of cables. That's the 4th column
-    # on the csv file. Numpy was giving me some trouble but turning the array into
-    # a list seemed to help.
-    #print(invkin_header.tolist()[0])
-    # s = invkin_header.tolist()[3]
-
-    # Then, read the data itself. Starts two rows down from header.
-    # control_data = np.genfromtxt(file_name, dtype=float, delimiter=",",
-                                # skip_header=5)
-
-    # Read in the gait commands. They're of mixed type: float string string.
+    # Then, read in the csv file / gait commands. 
+    # They're of mixed type: float string string.
     # Starts at row 2, counting from 0 (third row.)
     # Read each individually for easy typing.
     gait_command_times = np.genfromtxt(file_name, dtype=float, delimiter=",",
@@ -75,54 +66,47 @@ def tx_to_topic(file_name):
     # because we'll need to use the times with numpy, just in case, confirm it's a numpy array and not a list:
     gait_command_times = np.array(gait_command_times)
 
-    # Get the times at which to send each command.
-    # command_times = gait_commands_raw_data.tolist()[0]
-    # print(gait_command_times)
-    # and the commands themselves, and which hip/shoulder to send to
-    # commands = gait_commands_raw_data.tolist()[1]
-    # print(gait_command_commands)
-    # hips_or_shoulders = gait_commands_raw_data.tolist()[2]
-    # print(gait_command_hipsorshoulders)
-
-    # # Split the data into its two parts: 0:s-1 == invkin, remainder == states.
-    # #print(control_data)
-    # invkin_data = control_data[:, 0:s]
-    # # this is numpy notation for MATLAB equivalent control_data(:, s:end)
-    # state_data = control_data[:, s:]
-    # # print(invkin_data.shape)
-    # #print(state_data)
-
-    # # Create a timer object that will sleep long enough to result in
-    # # a reasonable publishing rate
-    # r = rospy.Rate(0.5)  # hz
-    # # We'll keep track of rows: we only want to publish until the end of the CSV file.
-    # # max timestep is number of rows.
-    # max_timestep = invkin_data.shape[0]
-    # # initialize the counter
-    # current_timestep = 0
-
     # finishing setup.
     print("File loaded into memory. Ctrl-C to stop output.")
 
-    # # We iterate through the array until the end
-    # # but also need to catch shutdown signals.
-    # while (current_timestep < max_timestep) and not rospy.is_shutdown():
-    #     # Create the message itself
-    #     #to_publish = Float32MultiArray()
-    #     to_publish = InvkinControlCommand(invkin_control = invkin_data[current_timestep, :], \
-    #     	invkin_ref_state = state_data[current_timestep, :])
-    #     # Put in the numpy array
-    #     #to_publish.data = np.array([0.5, 0.5, 0.5, 0.5])
-    #     #to_publish.data = invkin_data[current_timestep, :]
-    #     # Publish the current_timestep-th message
-    #     pub.publish(to_publish)
-    #     # Echo to the terminal
-    #     print("Timestep " + str(current_timestep) + ", publishing:")
-    #     print(to_publish.invkin_control)
-    #     # increment the counter
-    #     current_timestep += 1
-    #     # sleep until the next output
-    #     r.sleep()
+    # To start printing the commands, iterate through the lists and sleepUntil
+    # the time for the next start. We'll want to use an index variable here,
+    # which isn't pythonic, but is fine.
+    i = 0
+
+    # the starting time for counting gait timing.
+    start_time = rospy.get_time()
+    # a pre-specified interval for checking in sleepUntil. In sec.
+    sleepUntil_dt = 0.01
+
+    # We iterate through the array until the end
+    # but also need to catch shutdown signals.
+    # This assumes there are the same number of rows in ALL the three data arrays above!
+    while (i < gait_command_times.shape[0]) and not rospy.is_shutdown():
+        # Pull out the target time for the i-th message
+        time_i = gait_command_times[i]
+        # Wait until it's time to publish that command
+        sleepUntil(start_time, time_i, sleepUntil_dt)
+        # Now create and send the message as appropriate.
+        # For either shoulders or hips:
+        if gait_command_hipsorshoulders[i] == "hips":
+            # create a hips message
+            to_publish_hips = HipsGaitCommand(hips_command = gait_command_commands[i])
+            # publish the command
+            pub_hips.publish(to_publish_hips)
+        elif gait_command_hipsorshoulders[i] == "shoulders":
+            # create a shoulders message
+            to_publish_shoulders = ShouldersGaitCommand(shoulders_command = gait_command_commands[i])
+            # publish the command
+            pub_shoulders.publish(to_publish_shoulders)
+        else:
+            # error, got to be hips or shoulders!
+            raise Exception('Command did not match either hips or shoulders!')
+
+        # and return a little debugging message
+        print("Sent command " + gait_command_commands[i] + " to " + gait_command_hipsorshoulders[i] + " at time " + str(rospy.get_time()-start_time) + ", target time was " + str(time_i))
+        # then increment the timestep
+        i += 1
 
 
 # the main function: just call the helper, while parsing the path to the gait commands file.
