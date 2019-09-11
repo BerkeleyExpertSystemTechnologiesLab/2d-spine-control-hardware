@@ -30,7 +30,7 @@ def echo_to_terminal(device_name):
     # In seconds, presumably.
     serial_timeout = 1
     # First, start up the ros node.
-    rospy.init_node('serial_rx_echo', anonymous=False)
+    rospy.init_node('serial_rx_echo', anonymous=True)
     # We'll publish to a topic as well as echo to the terminal.
     pub = rospy.Publisher('serial_rx_echo', String, queue_size=10)
     # Next, do the serial setup:

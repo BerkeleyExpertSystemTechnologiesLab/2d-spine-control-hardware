@@ -29,7 +29,7 @@ def tx_to_serial(device_name):
     # Hard-code a timeout for pyserial. Seems recommended, even for tx?
     serial_timeout = 1
     # First, start up the ros node.
-    rospy.init_node('serial_tx_cmdline', anonymous=False)
+    rospy.init_node('serial_tx_cmdline', anonymous=True)
     # We'll publish commands to a topic just in case someone else wants to use them
     pub = rospy.Publisher('serial_tx_cmdline', String, queue_size=10)
     # Next, do the serial setup:

@@ -22,7 +22,7 @@ import serial
 # We'll use two messages, both strings, to differentiate what gets sent to hips vs. shoulders
 from belka_gait_commander.msg import HipsGaitCommand
 from belka_gait_commander.msg import ShouldersGaitCommand
-# we'll need to parse the string itself too.
+# we'll need to parse the string itself too?
 from std_msgs.msg import String
 
 # Note: in order to do publishing within a callback, we need to pass around
@@ -46,18 +46,20 @@ class SerialTxGaitCommands:
 
         # We seem to be getting some mis-aligned commands.
         # So, before anything else, send out a "clear" every time.
-        self.serial_port.write("\n")
+        self.serial_port_hips.write("\n")
         clear_delay = 0.05
         # give the PSoC a moment
         # maybe 20 ms?
         rospy.sleep(clear_delay)
-        self.serial_port.write("c\n")
+        self.serial_port_hips.write("c\n")
         rospy.sleep(clear_delay)
-        self.serial_port.write("c\n")
+        self.serial_port_hips.write("c\n")
         rospy.sleep(clear_delay)
 
         # Send the message
         self.serial_port_hips.write(hips_command)
+        # send debugging back to terminal
+        print("Wrote hips command: " + message.hips_command)
 
     def serial_tx_callback_shoulders(self, message):
         # When a message is received:
@@ -72,18 +74,20 @@ class SerialTxGaitCommands:
 
         # We seem to be getting some mis-aligned commands.
         # So, before anything else, send out a "clear" every time.
-        self.serial_port.write("\n")
+        self.serial_port_shoulders.write("\n")
         clear_delay = 0.05
         # give the PSoC a moment
         # maybe 20 ms?
         rospy.sleep(clear_delay)
-        self.serial_port.write("c\n")
+        self.serial_port_shoulders.write("c\n")
         rospy.sleep(clear_delay)
-        self.serial_port.write("c\n")
+        self.serial_port_shoulders.write("c\n")
         rospy.sleep(clear_delay)
 
         # Send the message
         self.serial_port_shoulders.write(shoulders_command)
+        # send debugging back to the terminal
+        print("Wrote shoulders command: " + message.shoulders_command)
 
     # The primary helper function here opens the serial device,
     # subscribes to a topic, writes when new data appears on the topic, and
@@ -104,8 +108,8 @@ class SerialTxGaitCommands:
         rospy.init_node('serial_tx_gait_commands', anonymous=False)
         # The main functionality here is a subscriber.
         #sub = rospy.Subscriber(topic_name, Float32MultiArray, self.serial_tx_callback)
-        sub_hips = rospy.Subscriber(topic_name_hips, HipsGaitCommand, self.serial_tx_hips_callback)
-        sub_shoulders = rospy.Subscriber(topic_name_shoulders, ShouldersGaitCommand, self.serial_tx_shoulders_callback)
+        sub_hips = rospy.Subscriber(topic_name_hips, HipsGaitCommand, self.serial_tx_callback_hips)
+        sub_shoulders = rospy.Subscriber(topic_name_shoulders, ShouldersGaitCommand, self.serial_tx_callback_shoulders)
         # We'll publish commands to a topic just in case someone else wants to use them
         # pub = rospy.Publisher('serial_tx_echo', String, queue_size=10)
         # Next, do the serial setup:
