@@ -1,0 +1,6 @@
+Belka Gait Commands. Columns are:,
+"1 = time (absolute, in sec), 2 = command, 3 = shoulders or hips",,
+0.5,lff,shoulders
+0.55,lbf,hips
+1.5,lf,shoulders
+1.55,lb,hips
