@@ -8,10 +8,10 @@
 
 import rospy
 import roslib
-from opencv_object_tracker import tracker_init, tracker_main, tracker_angle
+from opencv_object_tracker import tracker_init, tracker_main, auto_homography
 import cv2
 import numpy as np
-from numpy.linalg import inv
+from numpy.linalg import inv, norm
 from opencv_work.msg import SpineState
 
 roslib.load_manifest('opencv_work')
@@ -24,51 +24,49 @@ def talker():
     # pub = rospy.Publisher('cv_data', numpy_msg(Floats), queue_size=10)
     pub = rospy.Publisher('cv_data', SpineState, queue_size=10)
     rate = rospy.Rate(100)  # 10hz
+    d1 = 0.82  # distance in cm between dowel pin 1 (leftmost) and the local vertebra origin, as of 2019-05-15
+    originpix = np.empty([2, 1]).astype(int)  # initialize array for pixel coordinates of origin
 
     while not rospy.is_shutdown():
 
         # wrap everything around a keyboard interrupt catcher
         try:
             # run initalization
-            (trackers, args, pix_com, vs, H, fps, key) = tracker_init()
+            (detector, vs, Q, uvec, K, D, key) = tracker_init()
 
             # while still tracking
             while not key == ord("q"):
 
                 # run tracker
-                (pix_com_data, key) = tracker_main(trackers, args, pix_com, vs, fps)
+                (blob_detection_data, key) = tracker_main(detector, K, D, vs, originpix)
+                pix_com_data = blob_detection_data['pix_com']
 
                 # calculate true COM points using homography matrix
-                pix_com_hom = np.append(pix_com_data, [[1, 1]], axis=0)
+                pt1 = np.array(pix_com_data[0, :])  # location of dowel pin 1 in pixel frame
+                pt2 = np.array(pix_com_data[1, :])  # location of dowel pin 2 in pixel frame
+                pt1h = np.r_[np.transpose([pt1]), np.array([[1]])]  # homogeneous coordinates
+                pt2h = np.r_[np.transpose([pt2]), np.array([[1]])]
+                pt1true = np.dot(Q, pt1h)[0:2, :] / np.dot(Q, pt1h)[2, :]   # location of dowel pin 1 in global frame (must divide by homography scaling factor)
+                pt2true = np.dot(Q, pt2h)[0:2, :] / np.dot(Q, pt2h)[2, :]  # location of dowel pin 2 in global frame (divide by homography scaling factor)
+                mag = np.linalg.norm(pt2true - pt1true)  # magintude of vector between pins
+                duvec = (pt2true - pt1true) / mag if mag != 0 else np.full(2, np.nan)  # unit vector between dowel pin locations
+                origin = pt1true - np.transpose([duvec * d1]) if not np.isnan(duvec).any() else np.array([[[0], [0]]])  # global vertebra origin
+                # angle between dowel pin vector and world frame x-unit vector (caluclated in initialization)
+                angle = np.math.atan2(np.linalg.det([np.stack((uvec.reshape(1, 2)[0], duvec.reshape(1, 2)[0]))]),
+                                      np.dot(uvec.reshape(1, 2), duvec))  # angle of vertebra rotation
 
-                Q = np.linalg.inv(H)
-                pt1 = np.transpose(np.array([pix_com_data[0, :]]))
-                pt2 = np.transpose(np.array([pix_com_data[1, :]]))
-                pt1h = np.r_[pt1, np.array([[1]])]
-                pt2h = np.r_[pt2, np.array([[1]])]
-                pt1true = np.dot(Q, pt1h)[0:2, :]
-                pt2true = np.dot(Q, pt2h)[0:2, :]
-                # true_com = (np.dot(np.linalg.inv(H), pix_com_hom))[0:2, :]
-                # calculate angle of rotation of vertebrae
-                theta = tracker_angle(np.transpose(pt1true), np.transpose(pt2true))
-                # print(theta)
-                # append rotation data with COM position data
-                # vert_data = np.append(true_com.flatten(), theta)
+                # re-calculate origin in pixel coordinates and visualize on frame
+                originh = np.concatenate((origin[0], np.array([[1]])), axis=0)
+                originpix = (np.dot(inv(Q), originh) / np.dot(inv(Q), originh)[2, :])[0:2, :].astype(int)
 
+                # nominal_origin = [32.84, 15.24]
                 # publish data
-                message = SpineState(rotation=theta, com1=pt1true, com2=pt2true)
-                # message = SpineState(rotation=theta, com1=pix_com_data[0, :], com2=pix_com_data[1, :])
+                message = SpineState(rotation=np.degrees(angle), comx=float(origin[0, 0][0]), comy=float(origin[0, 1][0]))
                 pub.publish(message)
                 rate.sleep()
 
-            # if we are using a webcam, release the pointer
-            if not args.get("video", False):
-                vs.stop()
-                print('[END OF TRACKING]')
-
-            # otherwise, release the file pointer
-            else:
-                vs.release()
+            vs.release()
+            print('[END OF TRACKING]')
 
             # close all windows and leave loop
             cv2.destroyAllWindows()
