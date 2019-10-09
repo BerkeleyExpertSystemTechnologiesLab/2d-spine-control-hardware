@@ -164,24 +164,24 @@ void UART_Command_Parser() {
                     // TO-DO: replace with the #define'd constants. More efficient.
                     
                     // Length of string (in cm):
-                    // current_control[0] = (-1*control_in_cm[0]*ticks_per_rev)/(2*PI*RADIUS);
+                    current_control[0] = control_in_cm[0]*ticks_per_rev/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    current_control[0] = control_in_cm[0]*ticks_per_rev/360;
+                    //current_control[0] = control_in_cm[0]*ticks_per_rev/360;
                     
                     // Length of string (in cm):
-                    current_control[1] = (control_in_cm[1]*ticks_per_rev_big)/(2*PI*RADIUS);
+                    //current_control[1] = (control_in_cm[1]*ticks_per_rev_big)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    // current_control[1] = control_in_cm[1]*ticks_per_rev_big/360;
+                    current_control[1] = control_in_cm[1]*ticks_per_rev_big/360;
                     
                     // Length of string (in cm):
-                    // current_control[2] = (control_in_cm[2]*ticks_per_rev)/(2*PI*RADIUS);
+                    current_control[2] = (control_in_cm[2]*ticks_per_rev)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    current_control[2] = control_in_cm[2]*ticks_per_rev/360;
+                    //current_control[2] = control_in_cm[2]*ticks_per_rev/360;
                     
                     // Length of string (in cm):
-                    current_control[3] = (control_in_cm[3]*ticks_per_rev_big)/(2*PI*RADIUS);
+                    //current_control[3] = (control_in_cm[3]*ticks_per_rev_big)/(2*PI*RADIUS);
                     // Angle rotation (degrees):
-                    // current_control[3] = control_in_cm[3]*ticks_per_rev_big/360;
+                    current_control[3] = control_in_cm[3]*ticks_per_rev_big/360;
                     
                     sprintf(transmit_buffer, "Stored an input, converted to encoder ticks, of %li, %li, %li, %li\r\n", current_control[0],
                         current_control[1], current_control[2], current_control[3]);
@@ -373,17 +373,17 @@ void UART_Command_Parser() {
             }
             // left back leg max angle
             else if(strcmp(&cmd,"lbf")==0) {
-                current_control[0] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                current_control[1] = MAX_LEG_ANGLE*ticks_per_rev_big/360;
                 sprintf(transmit_buffer, "Left back leg MAX angle.\r\n");
             }
             // left back leg min angle
             else if(strcmp(&cmd,"lbb")==0) {
-                current_control[0] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                current_control[1] = MIN_LEG_ANGLE*ticks_per_rev_big/360;
                 sprintf(transmit_buffer, "Left back leg MIN angle.\r\n");
             }
             // left back leg zero angle
             else if(strcmp(&cmd,"lb")==0) {
-                current_control[0] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                current_control[1] = DEF_LEG_ANGLE*ticks_per_rev_big/360;
                 sprintf(transmit_buffer, "Left back leg ZERO angle.\r\n");
             }
             // Right front leg max angle
@@ -403,29 +403,29 @@ void UART_Command_Parser() {
             }
             // Right back leg max angle
             else if(strcmp(&cmd,"rbf")==0) {
-                current_control[2] = MAX_LEG_ANGLE*ticks_per_rev/360;
+                current_control[3] = MAX_LEG_ANGLE*ticks_per_rev_big/360;
                 sprintf(transmit_buffer, "Right back leg MAX angle.\r\n");
             }
             // Right back leg min angle
             else if(strcmp(&cmd,"rbb")==0) {
-                current_control[2] = MIN_LEG_ANGLE*ticks_per_rev/360;
+                current_control[3] = MIN_LEG_ANGLE*ticks_per_rev_big/360;
                 sprintf(transmit_buffer, "Right back leg MIN angle.\r\n");
             }
             // Right back leg zero angle
             else if(strcmp(&cmd,"rb")==0) {
-                current_control[2] = DEF_LEG_ANGLE*ticks_per_rev/360;
+                current_control[3] = DEF_LEG_ANGLE*ticks_per_rev_big/360;
                 sprintf(transmit_buffer, "Right back leg ZERO angle.\r\n");
             }
             // Need a left/right command and CW/CCW command
             // SPINE:
             else if(strcmp(&cmd,"scw")==0) {
-                current_control[1] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                current_control[3] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                current_control[0] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                current_control[2] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 sprintf(transmit_buffer, "Spine Clockwise (CW).\r\n");
             }
             else if(strcmp(&cmd,"sccw")==0) {
-                current_control[3] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                current_control[1] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                current_control[2] = MIN_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                current_control[0] = MAX_SPINE_ROT_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 sprintf(transmit_buffer, "Spine CounterClockwise (CCW).\r\n");
             }
             else if(strcmp(&cmd,"sl")==0) {
@@ -441,8 +441,8 @@ void UART_Command_Parser() {
                 sprintf(transmit_buffer, "Error! Hips do not support spine left/right.\r\n");
             }
             else if(strcmp(&cmd,"sd")==0) {
-                current_control[1] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
-                current_control[3] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                current_control[0] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
+                current_control[2] = DEF_SPINE_LENGTH*ticks_per_rev/(2*PI*RADIUS);
                 sprintf(transmit_buffer, "Spine Rotation ZERO.\r\n");
             }
             // add something to catch a "not matched, more than one character command"
@@ -474,8 +474,8 @@ void UART_Welcome_Message(){
     
     UART_PutString("\r\nBelka Walking Controller.\r\n");
     UART_PutString("Copyright 2019 Berkeley Emergent Space Tensegrities Lab.\r\n");
-    UART_PutString("\r\n*** BOARD_1 / HIPS ***\r\n\r\n");
-    UART_PutString("Motors and units:\r\n(1) LeftBackLeg, DEG\r\n(2) SpineCW, CENTIMETERS\r\n(3) RightBackLeg, DEG\r\n(4) SpineCCW, CENTIMETERS\r\n\r\n");
+    UART_PutString("\r\n*** BOARD_1 / HIPS, 30W SPOOL + 60W LEG ***\r\n\r\n");
+    UART_PutString("Motors and units:\r\n(1) SpineCW, CENTIMETERS\r\n(2) LeftBackLeg, DEG\r\n(3) SpineCCW, CENTIMETERS\r\n(4) RightBackLeg, DEG\r\n\r\n");
     UART_PutString("Usage: send strings of the form (char) (optional_args). Currently supported:\r\n");
     UART_PutString("(NOTE: THESE MUST BE FOLLOWED EXACTLY, with exact spacing.)\r\n\n");
     UART_PutString("q = Query currently-stored control input\r\n");

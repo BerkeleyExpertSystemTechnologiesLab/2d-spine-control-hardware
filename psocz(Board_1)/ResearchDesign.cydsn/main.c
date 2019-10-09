@@ -301,9 +301,6 @@ void move_motor_2() {
 
 // 30W
 void move_motor_3() {
-    // Checking on quadrature encoders - are they overflowing?
-    //sprintf(transmit_buffer, "QuadDec3 Counter: %li\r\n", QuadDec_Motor1_GetCounter());
-    //UART_PutString(transmit_buffer);
     
     // Proportional term
     error[2] = current_control[2] - QuadDec_Motor3_GetCounter();
@@ -461,9 +458,56 @@ CY_ISR(timer_handler) {
         move_motor_2();
         move_motor_3();
         move_motor_4();
-        
+        // Checking on quadrature encoders - are they overflowing?
+        // This may have been a cause of issues as of Sept. 2019, but it did not seem like the number of ticks
+        // got bigger than the maximum size of a long-int, so Drew commented it back out.
+        //sprintf(transmit_buffer, "QuadDec Counters: %li, %li, %li, %li\r\n", 
+        //    QuadDec_Motor1_GetCounter(), QuadDec_Motor2_GetCounter(), QuadDec_Motor3_GetCounter(), QuadDec_Motor4_GetCounter());
+        //UART_PutString(transmit_buffer);
     }    
     Timer_ReadStatusRegister();
+}
+
+// For debugging the quadrature decoders:
+// This is the function called by the quadrature decoder interrupt handler when 
+// the decoder throws an interrupt. It's used for getting more information about what's going on
+// inside the quadrature decoder. 
+// Drew used it in early Sept. to try and see: why aren't they counting when then legs get pushed as the robot falls over?
+//
+// ****** CURRENTLY ONLY FOR MOTOR 3
+// (see the top design schematic where isr_QuadDec_Motor3 is hooked up.)
+//
+CY_ISR(quaddec_debugging_handler){
+    UART_PutString("Error thrown for QuadDec 3:\r\n");
+    uint8 quaddec3_events = QuadDec_Motor3_GetEvents();
+    // interpret the output.
+    // Since the return value from the GetEvents function is an integer, can switch on it.
+    // Here, Drew used PSoC Creator's macros for the integers that should represent different
+    // types of errors. However, as of Sept. 2019, it doesn't seem to be working?
+    // To-do: print out the quaddec3_events integer to the UART to see what it really is.
+    switch (quaddec3_events){
+        
+        case QuadDec_Motor3_COUNTER_OVERFLOW:
+            UART_PutString("Counter overflow.\r\n");
+            break;
+            
+        case QuadDec_Motor3_COUNTER_UNDERFLOW:
+            UART_PutString("Counter underflow.\r\n");
+            break;
+            
+        case QuadDec_Motor3_INVALID_IN:
+            UART_PutString("Invalid transition.\r\n");
+            break;
+            
+        case QuadDec_Motor3_COUNTER_RESET:
+            UART_PutString("Counter reset.\r\n");
+            break;
+            
+        default:
+            UART_PutString("Error not matched!\r\n");
+            break;
+        
+    }
 }
 
 int main(void) {
@@ -477,6 +521,9 @@ int main(void) {
     // These are found in the corresponding helper files (declarations in .h, implementations in .c)
     isr_UART_StartEx(Interrupt_Handler_UART_Receive);
     isr_Timer_StartEx(timer_handler);
+    
+    // for debugging the quadrature decoders - interrupts on errors of quaddec 3
+    isr_QuadDec_Motor3_StartEx(quaddec_debugging_handler);
     
     // For the quadrature (encoder) hardware components
     QuadDec_Motor1_Start();
