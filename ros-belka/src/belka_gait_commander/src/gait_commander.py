@@ -77,7 +77,7 @@ def tx_to_topic(file_name):
     # the starting time for counting gait timing.
     start_time = rospy.get_time()
     # a pre-specified interval for checking in sleepUntil. In sec.
-    sleepUntil_dt = 0.01
+    sleepUntil_dt = 0.001
 
     # We iterate through the array until the end
     # but also need to catch shutdown signals.

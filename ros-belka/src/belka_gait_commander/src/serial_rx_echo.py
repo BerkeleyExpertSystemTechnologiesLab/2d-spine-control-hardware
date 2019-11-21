@@ -5,7 +5,7 @@
 
 # serial_rx_echo outputs any lines from a specified serial port out to the terminal.
 # Usage:
-#	rosrun belka-gait-commander serial_rx_echo path-to-serial-device
+#	rosrun belka_gait_commander serial_rx_echo.py path-to-serial-device
 
 # Imports:
 import rospy

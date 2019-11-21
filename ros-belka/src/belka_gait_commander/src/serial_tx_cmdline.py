@@ -5,7 +5,7 @@
 
 # serial_tx_cmdline writes lines from the command line to the serial port.
 # Usage is:
-#	rosrun belka-gait-commander serial_tx_cmdline path-to-serial-device
+#	rosrun belka_gait_commander serial_tx_cmdline.py path-to-serial-device
 # and then lines are put to the serial device upon carraige return/newline or whatever.
 
 # Imports:
