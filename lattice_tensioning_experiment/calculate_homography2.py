@@ -13,7 +13,7 @@ import cv2
 
 def calc_H(uv, xy):
     # Note: uv are the clicked points (camera frame) and xy are the global points
-    num_pts = np.size(uv, 1)
+    num_pts = np.size(uv, 0)
     # Initialize the A and b matrices
     # There will be 2*N rows, since each point has an x, y position
     A = np.zeros((2 * num_pts, 8))

@@ -72,6 +72,26 @@ def run_experiment(img_path):
     H = calculate_homography2.calc_H(uv, calib_pts)
     print("Homography matrix: ")
     print(H)
+    # We use the inverse of this matrix to convert points.
+    Q = np.linalg.inv(H)
+    print("Inverse transform: ")
+    print(Q)
+
+    # Finally, click on the vertebrae/bodies to track.
+    n_bodies = 5
+    print("Please click on " + str(n_bodies) + " bodies you'd like to know the position of.")
+    robot_clicks = []
+    cv2.setMouseCallback(window_name, on_mouse_click, param=robot_clicks)
+    while len(robot_clicks) < n_bodies:
+        cv2.waitKey(10)
+    print("Got " + str(n_bodies) + " points on the robot.")
+    robot_pts = np.array(robot_clicks).T
+    # Each in the global frame:
+    for i in range(0, n_bodies):
+        # homogenous coordinates in 2D are 3x1 column vectors
+        body_i = np.r_[robot_pts[:, i], 1]
+        global_i = np.dot(Q, body_i)[0:2]
+        print("Body " + str(i) + ": Camera frame =" + str(robot_clicks[i]) + ", Global frame =" + str(global_i))
 
 # the main function: just call the helper, while parsing the serial port path.
 if __name__ == '__main__':
