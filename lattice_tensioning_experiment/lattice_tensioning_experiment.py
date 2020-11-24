@@ -21,14 +21,20 @@ def get_calibration_pts():
     # Assuming four points for now.
     xy = np.ndarray((4, 2))
     # number of dots/grid marks and distance between them = total distance
-    num_marks = 20
+    num_marks = 10
     mark_dist = 2.54 # here's our units, cm. From 9/28, Dorotea's backdrop had 1 inch
     edge_dist = num_marks*mark_dist
-    # Clicks go upwards then clockwise from (0,0)
+    # Clicks go downwards then counterclockwise from (0,0)
+    # We'll do a rectangle that's twice as long width-wise for better perspective
     xy[0,:] = [0, 0]
-    xy[1,:] = [0, edge_dist]
-    xy[2,:] = [edge_dist, edge_dist]
-    xy[3,:] = [edge_dist, 0]
+    xy[1,:] = [0, -edge_dist]
+    xy[2,:] = [2*edge_dist, -edge_dist]
+    xy[3,:] = [2*edge_dist, 0]
+    return xy
+
+# also for now, hard-code the coordinates from the inverse statics calculations
+def get_is_pts():
+    xy = np.array([[0,0], [14.2, 2.25], [28.4, 3], [42.6, 2.25], [56.8, 0]])
     return xy
 
 # Callback function for 'cv2.SetMouseCallback' adds a clicked point to the
@@ -92,6 +98,29 @@ def run_experiment(img_path):
         body_i = np.r_[robot_pts[:, i], 1]
         global_i = np.dot(Q, body_i)[0:2]
         print("Body " + str(i) + ": Camera frame =" + str(robot_clicks[i]) + ", Global frame =" + str(global_i))
+    
+    # Compare vs. the supposed known points
+    is_pts = get_is_pts()
+    camera_ref_pts = []
+    for i in range(0, is_pts.shape[0]):
+        is_pt_i = np.r_[is_pts[i,:].T, 1]
+        camera_i = np.dot(H, is_pt_i)[0:2]
+        camera_ref_pts.append(camera_i)
+        print("Reference Body " + str(i) + ": Global frame = " + str(is_pt_i) + ", Camera frame = " + str(camera_i))
+    
+    # Plot the points on this image.
+    clicked_color = (255, 0, 0)
+    clicked_radius = 20 # pixels
+    reference_color = (0, 255, 0)
+    for i in range(0, n_bodies):
+        cv2.circle(img_resized, robot_clicks[i], clicked_radius, clicked_color, -1)
+        ref_pt_i = tuple(camera_ref_pts[i].astype(int))
+        cv2.circle(img_resized, ref_pt_i, clicked_radius, reference_color, -1)
+    cv2.imshow(window_name, img_resized)
+    print("Points now displayed. Please close when done.")
+    
+    # pause until we're done saving this picture, manually.
+    cv2.waitKey(0)
 
 # the main function: just call the helper, while parsing the serial port path.
 if __name__ == '__main__':
