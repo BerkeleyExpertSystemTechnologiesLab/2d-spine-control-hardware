@@ -13,10 +13,31 @@ import sys
 # image processing might as well use opencv
 import cv2
 import numpy as np
+# our calibration package
+import calculate_homography2
 
-# The primary helper function here opens the serial device,
-# and iteratively reads lines from it until stopped.
-# frustratingly enough, hardware interrupts are difficult on linux, so we poll the device at some interval
+# helper to hard-code the coordinates we'll click on for the calibration
+def get_calibration_pts():
+    # Assuming four points for now.
+    xy = np.ndarray((4, 2))
+    # number of dots/grid marks and distance between them = total distance
+    num_marks = 20
+    mark_dist = 2.54 # here's our units, cm. From 9/28, Dorotea's backdrop had 1 inch
+    edge_dist = num_marks*mark_dist
+    # Clicks go upwards then clockwise from (0,0)
+    xy[0,:] = [0, 0]
+    xy[1,:] = [0, edge_dist]
+    xy[2,:] = [edge_dist, edge_dist]
+    xy[3,:] = [edge_dist, 0]
+    return xy
+
+# Callback function for 'cv2.SetMouseCallback' adds a clicked point to the
+# list 'points'
+def on_mouse_click(event,x,y,flag,param):
+    if(event == cv2.EVENT_LBUTTONUP):
+        point = (x,y)
+        print "Point Captured: " + str(point)
+        param.append(point)
 
 def run_experiment(img_path):
     print("Running lattice tensioning experiment with image file: " + img_path)
@@ -28,8 +49,29 @@ def run_experiment(img_path):
     dim = (width, height)
     # resize image
     img_resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA) 
-    cv2.imshow("Belka Lattice Tensioning Experiment", img_resized)
-    cv2.waitKey(0)
+    window_name = "Belka Lattice Tensioning Experiment"
+    cv2.imshow(window_name, img_resized)
+
+    # Take desired number of clicks from the hard-coded global coordinates
+    calib_pts = get_calibration_pts()
+    n_calib_clicks = calib_pts.shape[0]
+    print("Please click " + str(n_calib_clicks) + " times on the image.")
+    homography_clicks = []
+    cv2.setMouseCallback(window_name, on_mouse_click, param=homography_clicks)
+    # First N-many clicks are for calibration
+    while len(homography_clicks) < n_calib_clicks:
+        cv2.waitKey(10)
+    print("Got " + str(n_calib_clicks) + " calibration points.")
+
+    # Now, calculate the transformation between camera frame and global frame.
+    # Convert the Python list of points to a NumPy array of the form
+    #   | u1 u2 u3 u4 |
+    #   | v1 v2 v3 v4 |
+    # ^^^ACTUALLY IT'S TRANSPOSED, points are rows
+    uv = np.array(homography_clicks)
+    H = calculate_homography2.calc_H(uv, calib_pts)
+    print("Homography matrix: ")
+    print(H)
 
 # the main function: just call the helper, while parsing the serial port path.
 if __name__ == '__main__':
