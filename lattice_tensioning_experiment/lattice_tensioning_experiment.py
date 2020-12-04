@@ -20,21 +20,35 @@ import calculate_homography2
 def get_calibration_pts():
     # Assuming four points for now.
     xy = np.ndarray((4, 2))
-    # number of dots/grid marks and distance between them = total distance
-    num_marks = 10
-    mark_dist = 2.54 # here's our units, cm. From 9/28, Dorotea's backdrop had 1 inch
-    edge_dist = num_marks*mark_dist
-    # Clicks go downwards then counterclockwise from (0,0)
+    # number of dots/grid marks and distance between them = total distance. Rectange for better perspective
+    num_marks_x = 51 # robot is roughly 104 cm actually, from foot to foot
+    num_marks_y = 26 # some arbitrary distance above the robot
+    mark_dist = 2 # here's our units, cm. From 12/1, Dorotea's grid was 2cm.
+    edge_dist_x = num_marks_x*mark_dist
+    edge_dist_y = num_marks_y*mark_dist
+    # Clicks go counterclockwise from (0,0)
     # We'll do a rectangle that's twice as long width-wise for better perspective
     xy[0,:] = [0, 0]
-    xy[1,:] = [0, -edge_dist]
-    xy[2,:] = [2*edge_dist, -edge_dist]
-    xy[3,:] = [2*edge_dist, 0]
+    xy[1,:] = [0, edge_dist_y]
+    xy[2,:] = [edge_dist_x, edge_dist_y]
+    xy[3,:] = [edge_dist_x, 0]
     return xy
 
 # also for now, hard-code the coordinates from the inverse statics calculations
-def get_is_pts():
+# here's one for the flexed-back spine (arched upwards)
+def get_is_pts_flexed():
     xy = np.array([[0,0], [14.2, 2.25], [28.4, 3], [42.6, 2.25], [56.8, 0]])
+    # Convert to global coordinates, assuming origin is bottom-left foot
+    origin_at = np.atleast_2d(np.array([-19.2, -27.5]))
+    xy = xy - origin_at
+    return xy
+
+# and for the neural spine
+def get_is_pts_neutral():
+    xy = np.array([[0,0], [14.2, 0], [28.4, 0], [42.6, 0], [56.8, 0]])
+    # Convert to global coordinates, assuming origin is bottom-left foot
+    origin_at = np.atleast_2d(np.array([-19.2, -27.5]))
+    xy = xy - origin_at
     return xy
 
 # Callback function for 'cv2.SetMouseCallback' adds a clicked point to the
@@ -49,7 +63,7 @@ def run_experiment(img_path):
     print("Running lattice tensioning experiment with image file: " + img_path)
     img = cv2.imread(img_path, cv2.IMREAD_COLOR)
     # Raw from the DSLR is a huge image
-    scale_percent = 30 # percent of original size. 30 works with a 1200x1600 monitor
+    scale_percent = 100 # percent of original size. 30 works with a 1200x1600 monitor for a full size from the camera
     width = int(img.shape[1] * scale_percent / 100)
     height = int(img.shape[0] * scale_percent / 100)
     dim = (width, height)
@@ -100,7 +114,7 @@ def run_experiment(img_path):
         print("Body " + str(i) + ": Camera frame =" + str(robot_clicks[i]) + ", Global frame =" + str(global_i))
     
     # Compare vs. the supposed known points
-    is_pts = get_is_pts()
+    is_pts = get_is_pts_neutral()
     camera_ref_pts = []
     for i in range(0, is_pts.shape[0]):
         is_pt_i = np.r_[is_pts[i,:].T, 1]
@@ -128,7 +142,7 @@ if __name__ == '__main__':
         print('Lattice Tensioning Experiment for Belka. Copyright 2020 Andrew Sabelhaus / BEST lab.')
         img_filepath = ""
         # Less typing = hard-coded path. Comment out to get a prompt
-        img_filepath = "belka_doublelattice_oct2020.jpg"
+        img_filepath = "belka_rooftop_measurements_scaled_2020-12-1.png"
         if not img_filepath:
             # the 0-th arg is the name of the file itself, so we want the 1st if it exists
             if len(sys.argv) < 2:
