@@ -15,6 +15,8 @@ import cv2
 import numpy as np
 # our calibration package
 import calculate_homography2
+# helpers for logging are elsewhere
+import lattice_tensioning_datalogger
 
 # helper to hard-code the coordinates we'll click on for the calibration
 def get_calibration_pts():
@@ -106,11 +108,13 @@ def run_experiment(img_path):
         cv2.waitKey(10)
     print("Got " + str(n_bodies) + " points on the robot.")
     robot_pts = np.array(robot_clicks).T
+    global_results = []
     # Each in the global frame:
     for i in range(0, n_bodies):
         # homogenous coordinates in 2D are 3x1 column vectors
         body_i = np.r_[robot_pts[:, i], 1]
         global_i = np.dot(Q, body_i)[0:2]
+        global_results.append(global_i)
         print("Body " + str(i) + ": Camera frame =" + str(robot_clicks[i]) + ", Global frame =" + str(global_i))
     
     # Compare vs. the supposed known points
@@ -122,6 +126,11 @@ def run_experiment(img_path):
         camera_ref_pts.append(camera_i)
         print("Reference Body " + str(i) + ": Global frame = " + str(is_pt_i) + ", Camera frame = " + str(camera_i))
     
+    # Save results
+    logfile_name = lattice_tensioning_datalogger.datalogger_startup(".", is_pts.shape[0])
+    ### STOPPED HERE 2020-12-7 3:35pm. Need to get dimensions right for passing to helper? Or have the helper do this from a list...
+    lattice_tensioning_datalogger.save_test(logfile_name, np.array(is_pts).T, np.array(global_results).T)
+
     # Plot the points on this image.
     clicked_color = (255, 0, 0)
     clicked_radius = 20 # pixels
